@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<title>Tabs</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700;900&display=swap">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css" />
+	<link rel="stylesheet" href="./css/common.css">
+	<script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js" defer></script>
+  <script src="./js/common.js" defer></script>
+</head>
+
+<body>
+	<div id="wrap">
+		<header id="header" data-load-html="./header.html"></header>
+		<main id="container">
+			<!-- 일반 탭 -->
+			<div class="tab" data-tab-scroll data-tab-pos="fixed" data-tab-active="1">
+				<div class="tab_container" role="tablist">
+					<ul class="tab_group">
+						<li class="tab_item"><button id="tab_btn1_1" class="tab_btn" role="tab" aria-controls="tab_pane1_1">콘텐츠 전체 탭1</button></li>
+						<li class="tab_item"><button id="tab_btn1_2" class="tab_btn" role="tab" aria-controls="tab_pane1_2">콘텐츠 전체 탭2</button></li>
+						<li class="tab_item"><button id="tab_btn1_3" class="tab_btn" role="tab" aria-controls="tab_pane1_3">콘텐츠 전체 탭3</button></li>
+					</ul>
+					<div class="tab_indicator"></div>
+				</div>
+				<div class="tab_content">
+					<div id="tab_pane1_1" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn1_1">
+						<h2>dsfsd</h2>
+						<div class="tab" data-tab-swiper>
+							<div class="tab_container" role="tablist">
+								<div class="tab_group">
+									<div class="tab_item"><button id="tab_btn2_1" class="tab_btn" role="tab" aria-controls="tab_pane2_1">Tab1Tab1Tab1Tab1Tab1Tab1</button></div>
+									<div class="tab_item"><button id="tab_btn2_2" class="tab_btn" role="tab" aria-controls="tab_pane2_2">Tab2Tab2Tab2Tab2Tab2</button></div>
+									<div class="tab_item"><button id="tab_btn2_3" class="tab_btn" role="tab" aria-controls="tab_pane2_3">Tab3Tab3Tab3Tab3Tab3</button></div>
+								</div>
+								<div class="tab_indicator"></div>
+							</div>
+							<div class="tab_content">
+								<div id="tab_pane2_1" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn2_1">
+									<h2>Tab 1 Content</h2>
+								</div>
+								<div id="tab_pane2_2" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn2_2">
+									<h2>Tab 2 Content</h2>
+								</div>
+								<div id="tab_pane2_3" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn2_3">
+									<h2>Tab 3 Content</h2>
+								</div>
+							</div>
+						</div>
+
+						<div class="tab" data-tab-size="small" data-tab-pos="sticky">
+							<div class="tab_container" role="tablist">
+								<div class="tab_group">
+									<div class="tab_item"><button id="tab_btn3_1" class="tab_btn" role="tab" aria-controls="tab_pane3_1">탭1</button></div>
+									<div class="tab_item"><button id="tab_btn3_2" class="tab_btn" role="tab" aria-controls="tab_pane3_2">탭2</button></div>
+									<div class="tab_item"><button id="tab_btn3_3" class="tab_btn" role="tab" aria-controls="tab_pane3_3">탭3</button></div>
+									<div class="tab_item"><button id="tab_btn3_4" class="tab_btn" role="tab" aria-controls="tab_pane3_4">탭4</button></div>
+								</div>
+								<div class="tab_indicator"></div>
+							</div>
+							<div class="tab_content">
+								<div id="tab_pane3_1" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn3_1">
+									<h2>Tab 1 Content</h2>
+								</div>
+								<div id="tab_pane3_2" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn3_2">
+									<h2>Tab 2 Content</h2>
+								</div>
+								<div id="tab_pane3_3" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn3_3">
+									<h2>Tab 3 Content</h2>
+								</div>
+								<div id="tab_pane3_4" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn3_4">
+									<h2>Tab 4 Content</h2>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="tab_pane1_2" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn1_2">
+					</div>
+					<div id="tab_pane1_3" class="tab_pane" role="tabpanel" aria-labelledby="tab_btn1_3">
+						<h2>Tab 3 Content</h2>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</body>
+
+</html>
