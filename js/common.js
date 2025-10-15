@@ -1667,7 +1667,6 @@ const UI = {
 		 * =============================== */
 		scrollMove: {
 			init: function() {
-				// 모든 data-scroll-move 버튼 탐색
 				const buttons = document.querySelectorAll('[data-scroll-move]');
 				if (!buttons.length) return;
 
@@ -1677,29 +1676,36 @@ const UI = {
 			},
 
 			handle: function(e) {
-				e.preventDefault();
+				const isInput = this.tagName === 'INPUT' && (this.type === 'checkbox' || this.type === 'radio');
 
-				// 버튼의 data-scroll-move 값 가져오기
+				// 체크박스/라디오인 경우 체크된 상태일 때만 이동
+				if (isInput && !this.checked) {
+					// 체크 해제면 이동 안 함
+					return;
+				}
+
+				// 체크박스/라디오 외에는 preventDefault
+				if (!isInput) {
+					e.preventDefault();
+				}
+
 				const targetId = this.dataset.scrollMove;
 				if (!targetId) return;
 
-				// 이동 대상 요소 찾기
 				const targetEl = document.getElementById(targetId);
 				if (!targetEl) return;
 
-				// 헤더 높이 계산 (fixed header 고려)
 				const header = document.querySelector('header');
 				const headerHeight = header ? header.offsetHeight : 0;
 
-				// 이동할 위치 계산
 				const targetPos = targetEl.getBoundingClientRect().top + window.pageYOffset - headerHeight;
 
-				// 부드럽게 스크롤 이동
 				window.scrollTo({
 					top: targetPos,
 					behavior: 'smooth'
 				});
 			},
 		},
+
 	},
 };
