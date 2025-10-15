@@ -33,6 +33,7 @@ const UI = {
 		this.loadHTMLIncludes(UI.util.getVersion());
 		this.input.init();
 		this.accordion.init();
+		this.toggle.init();
 		this.tooltip.init();
 		this.scroll.scrollDown.init();
 		this.scroll.scrollMove.init();
@@ -1560,6 +1561,96 @@ const UI = {
 				element.style.transition = '';
 			}, duration);
 		},
+	},
+
+	/**
+	 * UI.toggle 모듈
+	 * 
+	 * 버튼 클릭 시 하나 이상의 패널을 토글(open/close) 합니다.
+	 * - `data-toggle-panel` : 버튼과 연결된 패널 ID 목록 (콤마 구분 가능)
+	 * - `data-toggle-panel-id` : 패널 식별자
+	 * - `data-toggle-text-close` : 버튼이 닫힘 상태일 때 표시할 텍스트 (기본 "닫기")
+	 * - `data-toggle-class` : 버튼에 추가할 클래스 이름 (기본 "active")
+	 * - `data-toggle-animation` : 슬라이드 애니메이션 여부 ("false"면 애니메이션 없음, 기본 true)
+	 * - 버튼 초기 텍스트는 `data-toggle-text-open`에 자동 저장
+	 */
+	toggle: {
+		/**
+		 * 초기화
+		 * - 페이지 로드 시 모든 `[data-toggle-panel]` 버튼에 클릭 이벤트 등록
+		 */
+		init: function() {
+			const buttons = document.querySelectorAll('[data-toggle-panel]');
+			if (!buttons.length) return;
+
+			buttons.forEach(btn => {
+				// 페이지 로드 시 버튼 초기 텍스트를 data-toggle-text-open에 저장
+				if (!btn.dataset.toggleTextOpen) {
+					btn.dataset.toggleTextOpen = btn.textContent.trim();
+				}
+				btn.addEventListener('click', UI.toggle.handle);
+			});
+		},
+
+		/**
+		 * 버튼 클릭 시 패널 토글 처리
+		 * @param {MouseEvent} e - 클릭 이벤트
+		 */
+		handle: function(e) {
+			const panelIds = this.dataset.togglePanel;
+			if (!panelIds) return;
+
+			const toggleClass = this.dataset.toggleClass || 'active';
+			const textOpen = this.dataset.toggleTextOpen;
+			const textClose = this.dataset.toggleTextClose || '닫기';
+			const animation = this.dataset.toggleAnimation !== 'false';
+
+			const ids = panelIds.split(',').map(id => id.trim());
+			let isAnyOpen = false;
+
+			// 열려 있는 패널이 하나라도 있는지 확인
+			ids.forEach(id => {
+				const panels = document.querySelectorAll(`[data-toggle-panel-id="${id}"]`);
+				panels.forEach(panel => {
+					if (panel.classList.contains('show')) {
+						isAnyOpen = true;
+					}
+				});
+			});
+
+			// 패널 토글 처리
+			ids.forEach(id => {
+				const panels = document.querySelectorAll(`[data-toggle-panel-id="${id}"]`);
+				panels.forEach(panel => {
+					if (isAnyOpen) {
+						// 닫기
+						if (animation) {
+							UI.util.slideUp(panel);
+						} else {
+							panel.classList.remove('show');
+							panel.style.display = 'none';
+						}
+					} else {
+						// 열기
+						if (animation) {
+							UI.util.slideDown(panel);
+						} else {
+							panel.classList.add('show');
+							panel.style.display = 'block';
+						}
+					}
+				});
+			});
+
+			// 버튼 상태 클래스 및 텍스트 처리
+			if (isAnyOpen) {
+				this.classList.remove(toggleClass);
+				this.textContent = textOpen;
+			} else {
+				this.classList.add(toggleClass);
+				this.textContent = textClose;
+			}
+		}
 	},
 
 	scroll: {
