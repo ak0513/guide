@@ -1564,67 +1564,86 @@ const UI = {
 
 	scroll: {
 		scrollDown: {
-
 			/**
-			 * scrollDown 초기화 함수
-			 * - data-scrolldown 요소가 존재할 경우 스크롤 이벤트 등록
-			 * - 초기 페이지 로드 시 1회 handle() 실행
+			 * 초기화 함수.
+			 * 스크롤 및 리사이즈 이벤트를 감지하고, 각 요소의 노출 상태를 판별합니다.
+			 * 
+			 * @function init
+			 * @memberof ui.scroll.scrollDown
+			 * @description
+			 * - DOM 내 `[data-scrolldown]` 속성이 있는 요소를 모두 감지합니다.  
+			 * - 스크롤/리사이즈 시 `handle()` 함수를 실행합니다.
 			 */
 			init: function() {
-				const hasTarget = document.querySelector('[data-scrolldown]');
-				if (!hasTarget) return; // 대상 요소가 없으면 실행 안 함
-
-				window.addEventListener('scroll', UI.scroll.scrollDown.handle);
-				UI.scroll.scrollDown.handle(); // 초기 실행
+				window.addEventListener('scroll', this.handle);
+				window.addEventListener('resize', this.handle);
+				this.handle(); // 초기 1회 호출
 			},
 
 			/**
-			 * 스크롤 이벤트 시 실행되는 핵심 로직
+			 * 스크롤 이벤트 처리 함수.
+			 * 각 요소의 현재 뷰포트 내 위치를 계산하여 `.active` 클래스를 토글합니다.
 			 * 
-			 * [동작 원리]
-			 * 1️⃣ 각 data-scrolldown 요소의 뷰포트 위치(`getBoundingClientRect().top`)를 계산  
-			 * 2️⃣ data-scrolldown 속성 값에 따라 트리거 지점(startLine)을 계산  
-			 * 3️⃣ 요소 하단이 startLine 위로 올라오면 active 클래스 추가  
-			 * 4️⃣ 그렇지 않으면 active 제거
+			 * @function handle
+			 * @memberof ui.scroll.scrollDown
+			 * @private
+			 * @description
+			 * 다음 로직으로 노출 여부를 판단합니다.
+			 * 
+			 * 1. **뷰포트 기준선 계산 (`startLine`)**
+			 *    - `data-scrolldown` 값에 따라 기준선을 결정합니다.
+			 * 
+			 * 2. **요소 내부 트리거 위치 계산 (`elementOffset`)**
+			 *    - `data-scrolldown-point` 값에 따라 요소 내부 어느 지점을 기준으로 판단할지 정합니다.
+			 * 
+			 * 3. **요소 활성화 판단**
+			 *    - `(요소의 상단 위치 + 요소 내부 오프셋)` < `startLine`  
+			 *      → 요소가 기준선을 지나감 → `.active` 클래스 추가  
+			 *    - 그 외 → `.active` 클래스 제거
 			 */
 			handle: function() {
-				// 모든 data-scrolldown 요소 탐색
 				const elements = document.querySelectorAll('[data-scrolldown]');
 				const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
 				elements.forEach(item => {
-					// 요소의 위치 및 높이 정보
 					const rect = item.getBoundingClientRect();
 					const elementHeight = item.clientHeight;
 
-					// data-scrolldown 속성값 (ex: "0.3" 또는 "150" 또는 "")
+					// 1️⃣ 뷰포트 기준선 계산
 					const scrollDownAttr = item.dataset.scrolldown;
-
-					// 트리거 계산용 변수
-					let startPos = 0.2; // 기본값 (화면 하단 20%)
+					let startPos = 0.2;
 					let startLine = null;
 
-					/**
-					 * [startLine 계산 로직]
-					 * - 속성이 없거나 비어있으면 기본값(0.2) 사용
-					 * - 소수점 포함 시: 비율 계산 (0.3 → 70% 지점)
-					 * - 정수 시: 픽셀 단위 계산 (200 → 하단에서 200px)
-					 */
 					if (!scrollDownAttr || scrollDownAttr.length === 0) {
 						startLine = viewportHeight * (1 - startPos);
 					} else {
-						startPos = Number(scrollDownAttr);
-						startLine = scrollDownAttr.indexOf('.') > -1
+						const sdVal = Number(scrollDownAttr);
+						const isRatio = (String(scrollDownAttr).indexOf('.') > -1) || (sdVal > 0 && sdVal <= 1);
+						startPos = sdVal;
+						startLine = isRatio
 							? viewportHeight * (1 - startPos)
 							: viewportHeight - startPos;
 					}
 
-					/**
-					 * [활성화 조건]
-					 * 요소의 하단이 startLine보다 위로 올라왔을 때 → is_active 추가
-					 * (즉, 요소가 화면의 지정 위치까지 스크롤되어 들어왔을 때)
-					 */
-					if (rect.top + elementHeight < startLine) {
+					// 2️⃣ 요소 내부 트리거 위치 계산
+					const elementPointAttr = item.dataset.scrolldownPoint;
+					let elementOffset = 0;
+
+					if (elementPointAttr !== undefined && elementPointAttr !== null && String(elementPointAttr).length > 0) {
+						const ptVal = Number(elementPointAttr);
+						const isPointRatio = (String(elementPointAttr).indexOf('.') > -1) || (ptVal > 0 && ptVal <= 1);
+						elementOffset = isPointRatio
+							? elementHeight * ptVal
+							: ptVal;
+					} else {
+						// 정의되지 않은 경우: 요소 하단 기준
+						elementOffset = elementHeight;
+					}
+
+					// 3️⃣ 활성화 판별
+					const triggerPos = rect.top + elementOffset;
+
+					if (triggerPos < startLine) {
 						item.classList.add('is_active');
 					} else {
 						item.classList.remove('is_active');

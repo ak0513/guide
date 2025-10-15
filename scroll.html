@@ -9,6 +9,10 @@
 	<link rel="stylesheet" href="./css/common.css">
 	<script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js" defer></script>
   <script src="./js/common.js" defer></script>
+  <style>
+    .scroll_section {opacity: 0;transform: translateY(40px);transition: all 0.4s;}
+    .scroll_section.is_active {opacity: 1;transform: translateY(0);}
+  </style>
 </head>
 
 <body>
@@ -16,19 +20,31 @@
 		<header id="header" data-load-html="./header.html"></header>
 		<main id="container">
       <div class="sections">
-        <div style="height:100vh;background:#eee;display:flex;align-items:center;justify-content:center;">
-          <button data-scroll-move="aa">AA로 이동</button>
-          <button data-scroll-move="bb">BB로 이동</button>
-        </div>
+        <h2 class="h_tit2">scrollMove</h2>
+        <button data-scroll-move="aa" class="btn">AA로 이동</button>
+        <button data-scroll-move="bb" class="btn">BB로 이동</button>
+        <div id="aa" style="height:300px;background:#ff9;">Section AA</div>
+        <div id="bb" style="height:300px;background:#9ff;">Section BB</div>
 
-        <div id="aa" style="height:100vh;background:#ff9;">Section AA</div>
-        <div id="bb" style="height:100vh;background:#9ff;">Section BB</div>
-        <div style="height:1000px"></div>
-        <section class="scroll_section" data-scrolldown="0.3">내용</section>
-        <div style="height:1000px"></div>
-        <section class="scroll_section" data-scrolldown="200">내용</section>
-        <div style="height:1000px"></div>
-        <section class="scroll_section" data-scrolldown>기본값 (0.2)</section>
+
+        <h2 class="h_tit2">scrollDown</h2>
+        <section class="scroll_section" data-scrolldown="0.2">
+          <div>data-scrolldown="0.2" - 뷰포트 기준 하단 20% 지점</div>
+          <div>data-scrolldown-point이 없으면 기본값 요소의 하단이 기준선에 닿을 때 활성화</div>
+          <img src="./img/img.jpg" alt="">
+        </section>
+
+        <section class="scroll_section" data-scrolldown="200" data-scrolldown-point="0.5">
+          <div>data-scrolldown="200" - 뷰포트 기준 하단 200px 지점</div>
+          <div>data-scrolldown-point="0.5" - 요소의 상단에서 50% 지점이 화면 기준선에 닿을 때 활성화</div>
+          <img src="./img/img.jpg" alt="">
+        </section>
+
+        <section class="scroll_section" data-scrolldown>
+          <div>data-scrolldown - 뷰포트 기준 하단 20% 지점 - 기본값</div>
+          <img src="./img/img.jpg" alt="">
+        </section>
+        <div style="height:300px"></div>
       </div>
     </main>
   </div>
