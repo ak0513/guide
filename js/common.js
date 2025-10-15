@@ -1,114 +1,116 @@
 document.addEventListener('DOMContentLoaded', () => {
-  UI.initAll();
+	UI.initAll();
 
-  UI.util.setAttrRandomNum(document.querySelectorAll('link[rel="stylesheet"]'), 'href');
+	UI.util.setAttrRandomNum(document.querySelectorAll('link[rel="stylesheet"]'), 'href');
 	UI.util.setAttrRandomNum(document.querySelectorAll('script[src]'), 'src');
 
-  // Tab 스크롤 완료 후 첫 자식 요소에 tabindex 0 부여 및 포커스 이동 (접근성 보완)
-  window.onTabScrollComplete = function (tabIndex, pane) {
-    const firstTag = pane.firstElementChild;
-    if (firstTag) {
-      firstTag.setAttribute('tabindex', 0);
-      firstTag.focus();
-    }
-  };
+	// Tab 스크롤 완료 후 첫 자식 요소에 tabindex 0 부여 및 포커스 이동 (접근성 보완)
+	window.onTabScrollComplete = function (tabIndex, pane) {
+		const firstTag = pane.firstElementChild;
+		if (firstTag) {
+			firstTag.setAttribute('tabindex', 0);
+			firstTag.focus();
+		}
+	};
 
-  /* formatter 테스트 */
-  console.log(UI.formatter.addCommas(123456789)); // "123,456,789"
-  console.log(UI.formatter.removeCommas("123,456,789")); // "123456789"
-  console.log(UI.formatter.trimSpaces("   hello world   ")); // "hello world"
-  console.log(UI.formatter.truncate("This is a long text", 10)); // "This is a ..."
-  console.log(UI.formatter.removeSpecialChars("Hello!@# World$$")); // "Hello World"
-  console.log(UI.formatter.formatDate("2025-09-22T10:00:00Z")); // "2025-09-22"
-  console.log(UI.formatter.formatDate("2025.09.22")); // "2025-09-22"
-  console.log(UI.formatter.roundTo(3.14159, 2)); // "3.14"
-  console.log(UI.formatter.isValidEmail("test@example.com")); // true
-  console.log(UI.formatter.isValidEmail("test#example.com")); // false
+	/* formatter 테스트 */
+	console.log(UI.formatter.addCommas(123456789)); // "123,456,789"
+	console.log(UI.formatter.removeCommas("123,456,789")); // "123456789"
+	console.log(UI.formatter.trimSpaces("   hello world   ")); // "hello world"
+	console.log(UI.formatter.truncate("This is a long text", 10)); // "This is a ..."
+	console.log(UI.formatter.removeSpecialChars("Hello!@# World$$")); // "Hello World"
+	console.log(UI.formatter.formatDate("2025-09-22T10:00:00Z")); // "2025-09-22"
+	console.log(UI.formatter.formatDate("2025.09.22")); // "2025-09-22"
+	console.log(UI.formatter.roundTo(3.14159, 2)); // "3.14"
+	console.log(UI.formatter.isValidEmail("test@example.com")); // true
+	console.log(UI.formatter.isValidEmail("test#example.com")); // false
 });
 
 const UI = {
-  initAll: function() {
-      this.deviceInfo.init();
-      this.tab.initAll();
-      this.loadHTMLIncludes(UI.util.getVersion());
-			this.input.init();
-			this.accordion.init();
-			this.tooltip.init();
-  },
+	initAll: function () {
+		this.deviceInfo.init();
+		this.tab.initAll();
+		this.loadHTMLIncludes(UI.util.getVersion());
+		this.input.init();
+		this.accordion.init();
+		this.tooltip.init();
+		this.scroll.scrollDown.init();
+		this.scroll.scrollMove.init();
+	},
 
-  /**
-   * 외부 HTML 파일을 data-load-html 속성을 가진 요소에 비동기로 로드합니다.
-   * @param {string} vers - 버전 정보 (캐시 방지용 쿼리스트링)
-   */
-  loadHTMLIncludes: function(vers) {
-    // data-load-html 속성을 가진 모든 요소 선택
-    const elements = document.querySelectorAll('[data-load-html]');
+	/**
+	 * 외부 HTML 파일을 data-load-html 속성을 가진 요소에 비동기로 로드합니다.
+	 * @param {string} vers - 버전 정보 (캐시 방지용 쿼리스트링)
+	 */
+	loadHTMLIncludes: function (vers) {
+		// data-load-html 속성을 가진 모든 요소 선택
+		const elements = document.querySelectorAll('[data-load-html]');
 
-    elements.forEach(elmnt => {
-      let file = elmnt.getAttribute('data-load-html');
-      if (!file) return;
+		elements.forEach(elmnt => {
+			let file = elmnt.getAttribute('data-load-html');
+			if (!file) return;
 
-      // 버전 정보 붙이기 (캐시 방지)
-      file += "?v=" + vers;
+			// 버전 정보 붙이기 (캐시 방지)
+			file += "?v=" + vers;
 
-      // XMLHttpRequest 생성 및 초기화
-      const xhttp = new XMLHttpRequest();
-      xhttp.onreadystatechange = function() {
-        if (this.readyState === 4) {
-          if (this.status === 200) {
-            // 성공: 응답 텍스트를 파싱하여 HTML과 스크립트 분리 후 적용
-            elmnt.removeAttribute("data-load-html");
-            elmnt.setAttribute("data-loaded-html", file);
+			// XMLHttpRequest 생성 및 초기화
+			const xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function () {
+				if (this.readyState === 4) {
+					if (this.status === 200) {
+						// 성공: 응답 텍스트를 파싱하여 HTML과 스크립트 분리 후 적용
+						elmnt.removeAttribute("data-load-html");
+						elmnt.setAttribute("data-loaded-html", file);
 
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(this.responseText, "text/html");
+						const parser = new DOMParser();
+						const doc = parser.parseFromString(this.responseText, "text/html");
 
-            // innerHTML로 컨텐츠 채우기
-            elmnt.innerHTML = doc.body.innerHTML;
+						// innerHTML로 컨텐츠 채우기
+						elmnt.innerHTML = doc.body.innerHTML;
 
-            // 스크립트 태그 찾아서 실행 (src 포함)
-            const scripts = elmnt.querySelectorAll('script');
-            scripts.forEach(script => {
-              const newScript = document.createElement('script');
-              if (script.src) {
-                newScript.src = script.src;
-              } else {
-                newScript.textContent = script.textContent;
-              }
-              document.head.appendChild(newScript);
-              script.remove();
-            });
+						// 스크립트 태그 찾아서 실행 (src 포함)
+						const scripts = elmnt.querySelectorAll('script');
+						scripts.forEach(script => {
+							const newScript = document.createElement('script');
+							if (script.src) {
+								newScript.src = script.src;
+							} else {
+								newScript.textContent = script.textContent;
+							}
+							document.head.appendChild(newScript);
+							script.remove();
+						});
 
-          } else {
-            // 상태코드에 따른 에러 처리
-            const messages = {
-              403: "접근이 거절되었습니다.",
-              404: "페이지를 찾을 수 없습니다.",
-              500: "서버에 오류가 발생했습니다."
-            };
-            elmnt.innerHTML = messages[this.status] || "오류가 발생했습니다.";
-            elmnt.removeAttribute("data-load-html");
-            elmnt.setAttribute(`data-load-html-false-${this.status}`, file);
-          }
+					} else {
+						// 상태코드에 따른 에러 처리
+						const messages = {
+							403: "접근이 거절되었습니다.",
+							404: "페이지를 찾을 수 없습니다.",
+							500: "서버에 오류가 발생했습니다."
+						};
+						elmnt.innerHTML = messages[this.status] || "오류가 발생했습니다.";
+						elmnt.removeAttribute("data-load-html");
+						elmnt.setAttribute(`data-load-html-false-${this.status}`, file);
+					}
 
-          // 외부 후처리 함수 호출 (존재하면)
-          if (typeof m4aComm !== "undefined" && typeof m4aComm.runAfter === "function") {
-            m4aComm.runAfter();
-          }
-        }
-      };
-      xhttp.open("GET", file, true);
-      xhttp.send();
-    });
-  },
+					// 외부 후처리 함수 호출 (존재하면)
+					if (typeof m4aComm !== "undefined" && typeof m4aComm.runAfter === "function") {
+						m4aComm.runAfter();
+					}
+				}
+			};
+			xhttp.open("GET", file, true);
+			xhttp.send();
+		});
+	},
 
-  dom: {
-    /**
-		 * 요소의 offsetHeight 반환 (선택자 또는 요소)
-		 * @param {string|HTMLElement|null} target - 선택자 문자열 또는 DOM 요소
-		 * @returns {number}
-		 */
-		getOffsetHeight: function(target) {
+	dom: {
+		/**
+			 * 요소의 offsetHeight 반환 (선택자 또는 요소)
+			 * @param {string|HTMLElement|null} target - 선택자 문자열 또는 DOM 요소
+			 * @returns {number}
+			 */
+		getOffsetHeight: function (target) {
 			let el = null;
 
 			if (typeof target === 'string') {
@@ -120,12 +122,12 @@ const UI = {
 			return el ? el.offsetHeight : 0;
 		},
 
-    /**
-		 * 여러 요소에서 특정 클래스 제거
-		 * @param {NodeList|HTMLElement[]} elements - DOM 요소 배열 또는 NodeList
-		 * @param {string} className - 제거할 클래스 이름
-		*/
-		removeClass: function(elements, className) {
+		/**
+			 * 여러 요소에서 특정 클래스 제거
+			 * @param {NodeList|HTMLElement[]} elements - DOM 요소 배열 또는 NodeList
+			 * @param {string} className - 제거할 클래스 이름
+			*/
+		removeClass: function (elements, className) {
 			for (let i = 0; i < elements.length; i++) {
 				elements[i].classList.remove(className);
 			}
@@ -137,7 +139,7 @@ const UI = {
 		 * @param {string} [selector] - 선택자 필터 (선택 사항)
 		 * @returns {HTMLElement[]} - 이전 형제 요소 배열 (DOM 순서대로)
 		*/
-		prevAll: function(ele, selector) {
+		prevAll: function (ele, selector) {
 			if (!ele || !ele.previousElementSibling) return [];
 
 			const result = [];
@@ -159,7 +161,7 @@ const UI = {
 		 * @param {string} [selector] - 선택자 필터 (선택 사항)
 		 * @returns {HTMLElement[]} - 다음 형제 요소 배열
 		*/
-		nextAll: function(ele, selector) {
+		nextAll: function (ele, selector) {
 			if (!ele || !ele.nextElementSibling) return [];
 
 			const result = [];
@@ -175,12 +177,12 @@ const UI = {
 			return result;
 		},
 
-    /**
-		 * 지정 요소의 형제 요소 반환
-		 * @param {HTMLElement|string} ele - 요소 또는 선택자
-		 * @returns {HTMLElement[]} - 형제 요소 배열
-		*/
-		getSiblings: function(ele) {
+		/**
+			 * 지정 요소의 형제 요소 반환
+			 * @param {HTMLElement|string} ele - 요소 또는 선택자
+			 * @returns {HTMLElement[]} - 형제 요소 배열
+			*/
+		getSiblings: function (ele) {
 			if (typeof ele === 'string') {
 				ele = document.querySelector(ele);
 				if (!ele) return [];
@@ -197,7 +199,7 @@ const UI = {
 		 * @param {string} attr - 설정할 속성 이름
 		 * @param {string} value - 설정할 값
 		*/
-		setAttr: function(elements, attr, value) {
+		setAttr: function (elements, attr, value) {
 			if (!elements || !attr) return;
 
 			// elements가 배열/반복 가능한 객체가 아닐 경우 단일 요소로 감싸기
@@ -217,7 +219,7 @@ const UI = {
 		 * @param {HTMLElement[]|NodeList|HTMLElement} elements - 요소 배열, NodeList 또는 단일 요소
 		 * @param {string} attr - 제거할 속성 이름
 		*/
-		removeAttr: function(elements, attr) {
+		removeAttr: function (elements, attr) {
 			if (!elements || !attr) return;
 
 			if (!('forEach' in elements)) {
@@ -230,193 +232,193 @@ const UI = {
 				}
 			});
 		},
-  },
+	},
 
-  userAgent: {
-    ua: navigator.userAgent.toLowerCase(),
+	userAgent: {
+		ua: navigator.userAgent.toLowerCase(),
 
-    /** @returns {boolean} BlackBerry 여부 */
-    BlackBerry: function() {
-      return /blackberry/i.test(this.ua);
-    },
-    /** @returns {boolean} Android 여부 */
-    Android: function() {
-      return /android/i.test(this.ua);
-    },
-    /** @returns {boolean} iOS 여부 (iPhone, iPad, iPod) */
-    iOS: function() {
-      return /iphone|ipad|ipod/i.test(this.ua);
-    },
-    /** @returns {boolean} iPhone 여부 */
-    iPhone: function() {
-      return /iphone/i.test(this.ua);
-    },
-    /** @returns {boolean} iPad 여부 */
-    iPad: function() {
-      return /ipad/i.test(this.ua);
-    },
-    /** @returns {boolean} Windows 여부 */
-    Windows: function() {
-      return /windows/i.test(this.ua);
-    },
-    /** @returns {boolean} Edge 브라우저 여부 */
-    edge: function() {
-      return /edge|edg/i.test(this.ua);
-    },
-    /** @returns {boolean} Opera 브라우저 여부 */
-    opera: function() {
-      return /opr/i.test(this.ua);
-    },
-    /** @returns {boolean} Chrome 브라우저 여부 */
-    chrome: function() {
-      return /chrome/i.test(this.ua);
-    },
-    /** @returns {boolean} Internet Explorer 여부 */
-    msie: function() {
-      return /trident/i.test(this.ua);
-    },
-    /** @returns {boolean} Firefox 브라우저 여부 */
-    firefox: function() {
-      return /firefox/i.test(this.ua);
-    },
-    /** @returns {boolean} Safari 브라우저 여부 */
-    safari: function() {
-      return /safari/i.test(this.ua);
-    },
-    /** @returns {boolean} 주요 모바일 OS/브라우저 중 하나라도 해당하는지 여부 */
-    any: function() {
-      return this.Android() || this.BlackBerry() || this.iOS() || this.opera() || this.Windows();
-    },
-    /** @returns {boolean} 모바일 디바이스 여부 */
-    isMobile: function() {
-      return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(this.ua);
-    }
-  },
+		/** @returns {boolean} BlackBerry 여부 */
+		BlackBerry: function () {
+			return /blackberry/i.test(this.ua);
+		},
+		/** @returns {boolean} Android 여부 */
+		Android: function () {
+			return /android/i.test(this.ua);
+		},
+		/** @returns {boolean} iOS 여부 (iPhone, iPad, iPod) */
+		iOS: function () {
+			return /iphone|ipad|ipod/i.test(this.ua);
+		},
+		/** @returns {boolean} iPhone 여부 */
+		iPhone: function () {
+			return /iphone/i.test(this.ua);
+		},
+		/** @returns {boolean} iPad 여부 */
+		iPad: function () {
+			return /ipad/i.test(this.ua);
+		},
+		/** @returns {boolean} Windows 여부 */
+		Windows: function () {
+			return /windows/i.test(this.ua);
+		},
+		/** @returns {boolean} Edge 브라우저 여부 */
+		edge: function () {
+			return /edge|edg/i.test(this.ua);
+		},
+		/** @returns {boolean} Opera 브라우저 여부 */
+		opera: function () {
+			return /opr/i.test(this.ua);
+		},
+		/** @returns {boolean} Chrome 브라우저 여부 */
+		chrome: function () {
+			return /chrome/i.test(this.ua);
+		},
+		/** @returns {boolean} Internet Explorer 여부 */
+		msie: function () {
+			return /trident/i.test(this.ua);
+		},
+		/** @returns {boolean} Firefox 브라우저 여부 */
+		firefox: function () {
+			return /firefox/i.test(this.ua);
+		},
+		/** @returns {boolean} Safari 브라우저 여부 */
+		safari: function () {
+			return /safari/i.test(this.ua);
+		},
+		/** @returns {boolean} 주요 모바일 OS/브라우저 중 하나라도 해당하는지 여부 */
+		any: function () {
+			return this.Android() || this.BlackBerry() || this.iOS() || this.opera() || this.Windows();
+		},
+		/** @returns {boolean} 모바일 디바이스 여부 */
+		isMobile: function () {
+			return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(this.ua);
+		}
+	},
 
-  deviceInfo: {
-    /** @type {string|null} 운영체제 */
-    os: null,
-    /** @type {string|null} 디바이스 */
-    device: null,
-    /** @type {string|null} 브라우저 */
-    browser: null,
-    /** @type {string|null} 브라우저 버전 (주요 버전) */
-    version: null,
-    /** @type {boolean|null} 모바일 여부 */
-    mobile: null,
+	deviceInfo: {
+		/** @type {string|null} 운영체제 */
+		os: null,
+		/** @type {string|null} 디바이스 */
+		device: null,
+		/** @type {string|null} 브라우저 */
+		browser: null,
+		/** @type {string|null} 브라우저 버전 (주요 버전) */
+		version: null,
+		/** @type {boolean|null} 모바일 여부 */
+		mobile: null,
 
-    /**
-     * 초기화 함수
-     * @returns {void}
-     */
-    init: function() {
-      this.mobile = UI.userAgent.isMobile();
-      this.setDeviceInfo();
-      this.setBodyClass();
-    },
-
-    /**
-     * 운영체제, 디바이스, 브라우저, 버전 정보를 세팅한다
-     * @returns {void}
-     */
-    setDeviceInfo: function() {
-      // OS 체크
-      if (UI.userAgent.iOS()) {
-        this.os = 'os_ios';
-      } else if (UI.userAgent.Android()) {
-        this.os = 'os_android';
-      } else if (UI.userAgent.BlackBerry()) {
-        this.os = 'os_blackBerry';
-      } else if (UI.userAgent.Windows()) {
-        this.os = 'os_windows';
-      } else {
-        this.os = 'other-os';
-      }
-
-      // 디바이스 체크
-      if (UI.userAgent.iPhone()) {
-        this.device = 'iphone';
-      } else if (UI.userAgent.iPad()) {
-        this.device = 'ipad';
-      } else {
-        this.device = 'other-device';
-      }
-
-      // 브라우저 체크
-      if (UI.userAgent.edge()) {
-        this.browser = 'edge';
-      } else if (UI.userAgent.opera() && !!window.opr) {
-        this.browser = 'opera';
-      } else if (UI.userAgent.chrome() && !!window.chrome) {
-        this.browser = 'chrome';
-      } else if (UI.userAgent.msie()) {
-        this.browser = 'msie';
-      } else if (UI.userAgent.firefox()) {
-        this.browser = 'firefox';
-      } else if (UI.userAgent.safari()) {
-        this.browser = 'safari';
-      } else {
-        this.browser = 'other-browser';
-      }
-
-      this.version = this.getVersion(this.browser);
-    },
-
-    /**
-     * 브라우저 버전 정보를 User-Agent에서 추출한다.
-     * @param {string} agent 브라우저명 (edge, opera, chrome, msie, firefox, safari)
-     * @returns {string|null} 주요 버전 숫자 또는 null
-     */
-    getVersion: function(agent) {
-      const ua = UI.userAgent.ua;
-      let matches = null;
-
-      switch (agent) {
-        case 'edge':
-          matches = ua.match(/edg\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
-          break;
-        case 'opera':
-          matches = ua.match(/opera\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
-          break;
-        case 'chrome':
-          matches = ua.match(/chrome\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
-          break;
-        case 'msie':
-          matches = ua.match(/msie\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
-          break;
-        case 'firefox':
-          matches = ua.match(/firefox\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
-          break;
-        case 'safari':
-          matches = ua.match(/version\/([0-9]+\.[0-9]+)/);
-          break;
-        default:
-          return null;
-      }
-
-      if (matches && matches[1]) {
-        return matches[1].split('.')[0]; // 주요 버전만 리턴
-      }
-      return null;
-    },
-
-    /**
-     * body 태그에 platform, os, browser, version, device 클래스를 세팅한다.
-     * @returns {void}
-     */
-    setBodyClass: function() {
-      const platform = this.mobile ? 'mobile' : 'pc';
-      const classes = [platform, this.os, this.browser, `ver${this.version}`, this.device];
-      document.querySelector('body').setAttribute('class', classes.filter(Boolean).join(' '));
-    }
-  },
-
-  a11y: {
-    /**
-		 * 접근성 비활성화 (포커스, aria-hidden 등)
-		 * @param {HTMLElement|HTMLElement[]} eleDisable - 비활성화할 요소(들)
-		 * @param {string} module - 모듈명 (ex: "modal")
+		/**
+		 * 초기화 함수
+		 * @returns {void}
 		 */
+		init: function () {
+			this.mobile = UI.userAgent.isMobile();
+			this.setDeviceInfo();
+			this.setBodyClass();
+		},
+
+		/**
+		 * 운영체제, 디바이스, 브라우저, 버전 정보를 세팅한다
+		 * @returns {void}
+		 */
+		setDeviceInfo: function () {
+			// OS 체크
+			if (UI.userAgent.iOS()) {
+				this.os = 'os_ios';
+			} else if (UI.userAgent.Android()) {
+				this.os = 'os_android';
+			} else if (UI.userAgent.BlackBerry()) {
+				this.os = 'os_blackBerry';
+			} else if (UI.userAgent.Windows()) {
+				this.os = 'os_windows';
+			} else {
+				this.os = 'other-os';
+			}
+
+			// 디바이스 체크
+			if (UI.userAgent.iPhone()) {
+				this.device = 'iphone';
+			} else if (UI.userAgent.iPad()) {
+				this.device = 'ipad';
+			} else {
+				this.device = 'other-device';
+			}
+
+			// 브라우저 체크
+			if (UI.userAgent.edge()) {
+				this.browser = 'edge';
+			} else if (UI.userAgent.opera() && !!window.opr) {
+				this.browser = 'opera';
+			} else if (UI.userAgent.chrome() && !!window.chrome) {
+				this.browser = 'chrome';
+			} else if (UI.userAgent.msie()) {
+				this.browser = 'msie';
+			} else if (UI.userAgent.firefox()) {
+				this.browser = 'firefox';
+			} else if (UI.userAgent.safari()) {
+				this.browser = 'safari';
+			} else {
+				this.browser = 'other-browser';
+			}
+
+			this.version = this.getVersion(this.browser);
+		},
+
+		/**
+		 * 브라우저 버전 정보를 User-Agent에서 추출한다.
+		 * @param {string} agent 브라우저명 (edge, opera, chrome, msie, firefox, safari)
+		 * @returns {string|null} 주요 버전 숫자 또는 null
+		 */
+		getVersion: function (agent) {
+			const ua = UI.userAgent.ua;
+			let matches = null;
+
+			switch (agent) {
+				case 'edge':
+					matches = ua.match(/edg\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
+					break;
+				case 'opera':
+					matches = ua.match(/opera\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
+					break;
+				case 'chrome':
+					matches = ua.match(/chrome\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
+					break;
+				case 'msie':
+					matches = ua.match(/msie\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
+					break;
+				case 'firefox':
+					matches = ua.match(/firefox\/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
+					break;
+				case 'safari':
+					matches = ua.match(/version\/([0-9]+\.[0-9]+)/);
+					break;
+				default:
+					return null;
+			}
+
+			if (matches && matches[1]) {
+				return matches[1].split('.')[0]; // 주요 버전만 리턴
+			}
+			return null;
+		},
+
+		/**
+		 * body 태그에 platform, os, browser, version, device 클래스를 세팅한다.
+		 * @returns {void}
+		 */
+		setBodyClass: function () {
+			const platform = this.mobile ? 'mobile' : 'pc';
+			const classes = [platform, this.os, this.browser, `ver${this.version}`, this.device];
+			document.querySelector('body').setAttribute('class', classes.filter(Boolean).join(' '));
+		}
+	},
+
+	a11y: {
+		/**
+			 * 접근성 비활성화 (포커스, aria-hidden 등)
+			 * @param {HTMLElement|HTMLElement[]} eleDisable - 비활성화할 요소(들)
+			 * @param {string} module - 모듈명 (ex: "modal")
+			 */
 		accessDisable(eleDisable, module) {
 			if (!eleDisable) return;
 
@@ -506,15 +508,15 @@ const UI = {
 				});
 			});
 		},
-  },
+	},
 
-  util: {
+	util: {
 		/**
 		 * 지정된 요소를 slideDown 애니메이션으로 표시합니다. (jQuery slideDown 유사)
 		 * @param {HTMLElement} el - 애니메이션을 적용할 요소
 		 * @param {number} [duration=350] - 애니메이션 지속 시간 (ms)
 		 */
-		slideDown: function(el, duration = 350) {
+		slideDown: function (el, duration = 350) {
 			if (!el) return;
 
 			el.style.removeProperty('display');
@@ -548,7 +550,7 @@ const UI = {
 		 * @param {HTMLElement} el - 애니메이션을 적용할 요소
 		 * @param {number} [duration=350] - 애니메이션 지속 시간 (ms)
 		 */
-		slideUp: function(el, duration = 350) {
+		slideUp: function (el, duration = 350) {
 			if (!el) return;
 
 			el.style.height = `${el.offsetHeight}px`;
@@ -571,7 +573,7 @@ const UI = {
 				el.style.removeProperty('transition');
 			}, duration);
 		},
-		
+
 		/**
 		 * 현재 날짜를 'YYYYMMDD' 형식의 문자열로 반환합니다.
 		 * 
@@ -595,7 +597,7 @@ const UI = {
 		 * @param {HTMLElement|HTMLElement[]|NodeList} elements
 		 * @param {string} attr
 		*/
-		setAttrRandomNum: function(elements, attr) {
+		setAttrRandomNum: function (elements, attr) {
 			const list = elements instanceof HTMLElement ? [elements] : Array.from(elements || []);
 			const rand = UI.util.getVersion();
 
@@ -611,13 +613,13 @@ const UI = {
 			});
 		},
 
-    /**
-		 * URL에서 특정 쿼리 파라미터 값을 가져옴
-		 * @param {string} param - 파라미터 이름
-		 * @param {string} [url=location.href] - 검사할 URL (기본값: 현재 페이지 URL)
-		 * @returns {string|null} - 파라미터 값 또는 null
-		*/
-		getUrlParam: function(param, url = window.location.href) {
+		/**
+			 * URL에서 특정 쿼리 파라미터 값을 가져옴
+			 * @param {string} param - 파라미터 이름
+			 * @param {string} [url=location.href] - 검사할 URL (기본값: 현재 페이지 URL)
+			 * @returns {string|null} - 파라미터 값 또는 null
+			*/
+		getUrlParam: function (param, url = window.location.href) {
 			if (!param) return null;
 
 			try {
@@ -629,13 +631,13 @@ const UI = {
 			}
 		},
 
-    /**
-		 * 스크롤 이동 후 콜백 실행 (jQuery animate 대체)
-		 * @param {number} targetY - 이동할 Y 위치
-		 * @param {number} duration - 애니메이션 시간 (ms)
-		 * @param {Function} callback - 완료 후 실행할 콜백
-		 */
-		scrollToWithCallback: function(targetY, duration = 500, callback) {
+		/**
+			 * 스크롤 이동 후 콜백 실행 (jQuery animate 대체)
+			 * @param {number} targetY - 이동할 Y 위치
+			 * @param {number} duration - 애니메이션 시간 (ms)
+			 * @param {Function} callback - 완료 후 실행할 콜백
+			 */
+		scrollToWithCallback: function (targetY, duration = 500, callback) {
 			const start = window.scrollY || window.pageYOffset;
 			const startTime = performance.now();
 
@@ -654,215 +656,215 @@ const UI = {
 
 			requestAnimationFrame(scroll);
 		},
-  },
+	},
 
-  formatter: {
-    /**
-     * 숫자 문자열에서 모든 콤마(,)를 제거합니다.
-     * @param {string} str - 콤마를 제거할 문자열
-     * @returns {string} 콤마가 제거된 문자열
-     */
-    removeCommas: (str) => str.replace(/,/g, ""),
+	formatter: {
+		/**
+		 * 숫자 문자열에서 모든 콤마(,)를 제거합니다.
+		 * @param {string} str - 콤마를 제거할 문자열
+		 * @returns {string} 콤마가 제거된 문자열
+		 */
+		removeCommas: (str) => str.replace(/,/g, ""),
 
-    /**
-     * 숫자에 천 단위 콤마(,)를 추가합니다.
-     * @param {number|string} num - 콤마를 추가할 숫자 또는 숫자 문자열
-     * @returns {string} 콤마가 추가된 문자열
-     */
-    addCommas: (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-    
-    /**
-     * 숫자를 지정한 소수점 자리수까지 반올림합니다.
-     * @param {number} num - 반올림할 숫자
-     * @param {number} decimalPlaces - 소수점 자리수
-     * @returns {string} 반올림된 숫자 문자열
-     */
-    roundTo: (num, decimalPlaces) => {
-      return num.toFixed(decimalPlaces);
-    },
+		/**
+		 * 숫자에 천 단위 콤마(,)를 추가합니다.
+		 * @param {number|string} num - 콤마를 추가할 숫자 또는 숫자 문자열
+		 * @returns {string} 콤마가 추가된 문자열
+		 */
+		addCommas: (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
 
-    /**
-     * 문자열 양쪽의 공백을 제거합니다.
-     * @param {string} str - 공백을 제거할 문자열
-     * @returns {string} 공백이 제거된 문자열
-     */
-    trimSpaces: (str) => str.trim(),
+		/**
+		 * 숫자를 지정한 소수점 자리수까지 반올림합니다.
+		 * @param {number} num - 반올림할 숫자
+		 * @param {number} decimalPlaces - 소수점 자리수
+		 * @returns {string} 반올림된 숫자 문자열
+		 */
+		roundTo: (num, decimalPlaces) => {
+			return num.toFixed(decimalPlaces);
+		},
 
-    /**
-     * 문자열을 지정된 길이만큼 자르고, 초과 시 "..."을 붙입니다.
-     * @param {string} str - 자를 문자열
-     * @param {number} length - 최대 길이
-     * @returns {string} 잘린 문자열 또는 원본 문자열
-    */
-    truncate: (str, length) => {
-      if (str.length > length) {
-        return str.slice(0, length) + "...";
-      }
-      return str;
-    },
+		/**
+		 * 문자열 양쪽의 공백을 제거합니다.
+		 * @param {string} str - 공백을 제거할 문자열
+		 * @returns {string} 공백이 제거된 문자열
+		 */
+		trimSpaces: (str) => str.trim(),
 
-    /**
-     * 문자열에서 영문자, 숫자, 공백을 제외한 모든 특수 문자를 제거합니다.
-     * @param {string} str - 특수 문자를 제거할 문자열
-     * @returns {string} 특수 문자가 제거된 문자열
-     */
-    removeSpecialChars: (str) => {
-      return str.replace(/[^a-zA-Z0-9 ]/g, '');
-    },
+		/**
+		 * 문자열을 지정된 길이만큼 자르고, 초과 시 "..."을 붙입니다.
+		 * @param {string} str - 자를 문자열
+		 * @param {number} length - 최대 길이
+		 * @returns {string} 잘린 문자열 또는 원본 문자열
+		*/
+		truncate: (str, length) => {
+			if (str.length > length) {
+				return str.slice(0, length) + "...";
+			}
+			return str;
+		},
 
-    /**
-     * 날짜를 "YYYY-MM-DD" 형식의 문자열로 포맷합니다.
-     * @param {Date|string|number} date - Date 객체 또는 날짜로 변환 가능한 값
-     * @returns {string} 포맷된 날짜 문자열 (예: "2025-09-26")
-     */
-    formatDate: (date) => {
-      const d = new Date(date);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    },
+		/**
+		 * 문자열에서 영문자, 숫자, 공백을 제외한 모든 특수 문자를 제거합니다.
+		 * @param {string} str - 특수 문자를 제거할 문자열
+		 * @returns {string} 특수 문자가 제거된 문자열
+		 */
+		removeSpecialChars: (str) => {
+			return str.replace(/[^a-zA-Z0-9 ]/g, '');
+		},
 
-    /**
-     * 이메일 형식이 유효한지 검사합니다.
-     * @param {string} email - 검사할 이메일 주소
-     * @returns {boolean} 유효하면 true, 아니면 false
-     */
-    isValidEmail: (email) => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-    },
-  },
+		/**
+		 * 날짜를 "YYYY-MM-DD" 형식의 문자열로 포맷합니다.
+		 * @param {Date|string|number} date - Date 객체 또는 날짜로 변환 가능한 값
+		 * @returns {string} 포맷된 날짜 문자열 (예: "2025-09-26")
+		 */
+		formatDate: (date) => {
+			const d = new Date(date);
+			const year = d.getFullYear();
+			const month = String(d.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작
+			const day = String(d.getDate()).padStart(2, '0');
+			return `${year}-${month}-${day}`;
+		},
+
+		/**
+		 * 이메일 형식이 유효한지 검사합니다.
+		 * @param {string} email - 검사할 이메일 주소
+		 * @returns {boolean} 유효하면 true, 아니면 false
+		 */
+		isValidEmail: (email) => {
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+			return emailRegex.test(email);
+		},
+	},
 
 	input: {
-    /**
-     * input 관련 초기화 함수들을 호출합니다.
-     * 보통 페이지 로드 시 한 번 실행합니다.
-     */
-    init: function () {
-      this.reset();
-      this.bindFocusState();
-    },
+		/**
+		 * input 관련 초기화 함수들을 호출합니다.
+		 * 보통 페이지 로드 시 한 번 실행합니다.
+		 */
+		init: function () {
+			this.reset();
+			this.bindFocusState();
+		},
 
-    /**
-     * input 요소에 값이 있고 포커스가 있는 경우에만 초기화 버튼을 보여줍니다.
-     */
-    toggleResetButton: function (input) {
-      const wrapper = input.closest('.form_input');
-      const resetButton = wrapper?.querySelector('.btn_input_reset');
+		/**
+		 * input 요소에 값이 있고 포커스가 있는 경우에만 초기화 버튼을 보여줍니다.
+		 */
+		toggleResetButton: function (input) {
+			const wrapper = input.closest('.form_input');
+			const resetButton = wrapper?.querySelector('.btn_input_reset');
 
-      if (!resetButton) return;
+			if (!resetButton) return;
 
-      if (document.activeElement === input && input.value.trim() !== '') {
-        resetButton.classList.add('visible');  // 리셋 버튼 노출
-      } else {
-        resetButton.classList.remove('visible'); // 리셋 버튼 숨김
-      }
-    },
+			if (document.activeElement === input && input.value.trim() !== '') {
+				resetButton.classList.add('visible');  // 리셋 버튼 노출
+			} else {
+				resetButton.classList.remove('visible'); // 리셋 버튼 숨김
+			}
+		},
 
-    /**
-     * `.btn_input_reset` 버튼 클릭 시 인접한 input 값을 초기화하고 포커스를 이동합니다.
-     */
-    reset: function () {
-      const resetButtons = document.querySelectorAll('.btn_input_reset');
+		/**
+		 * `.btn_input_reset` 버튼 클릭 시 인접한 input 값을 초기화하고 포커스를 이동합니다.
+		 */
+		reset: function () {
+			const resetButtons = document.querySelectorAll('.btn_input_reset');
 
-      resetButtons.forEach((btn) => {
-        btn.addEventListener('click', function () {
-          const input = btn.closest('.form_input')?.querySelector('.form_control');
-          if (input) {
-            input.value = '';
-            input.focus();
-            btn.classList.remove('visible'); // 리셋 버튼 숨김
-          }
-        });
-      });
-    },
+			resetButtons.forEach((btn) => {
+				btn.addEventListener('click', function () {
+					const input = btn.closest('.form_input')?.querySelector('.form_control');
+					if (input) {
+						input.value = '';
+						input.focus();
+						btn.classList.remove('visible'); // 리셋 버튼 숨김
+					}
+				});
+			});
+		},
 
-    /**
-     * wrapper 내부에 포커스가 완전히 사라졌을 때
-     * focused / visible 클래스를 제거합니다.
-     */
-    handleFocusOut: function (wrapper) {
-      setTimeout(() => {
-        const active = document.activeElement;
+		/**
+		 * wrapper 내부에 포커스가 완전히 사라졌을 때
+		 * focused / visible 클래스를 제거합니다.
+		 */
+		handleFocusOut: function (wrapper) {
+			setTimeout(() => {
+				const active = document.activeElement;
 				console.log(active)
-        if (!wrapper.contains(active)) {
-          wrapper.classList.remove('focused');
-          const resetButton = wrapper.querySelector('.btn_input_reset');
-          if (resetButton) {
-            resetButton.classList.remove('visible');
-          }
-        }
-      }, 0);
-    },
+				if (!wrapper.contains(active)) {
+					wrapper.classList.remove('focused');
+					const resetButton = wrapper.querySelector('.btn_input_reset');
+					if (resetButton) {
+						resetButton.classList.remove('visible');
+					}
+				}
+			}, 0);
+		},
 
-    /**
-     * input 요소에 포커스되면 `.form_input`에 'focused' 클래스 추가,
-     * 포커스 해제되면 제거. 입력값에 따라 리셋 버튼 제어.
-     */
-    bindFocusState: function () {
-      const inputs = document.querySelectorAll('.form_control');
+		/**
+		 * input 요소에 포커스되면 `.form_input`에 'focused' 클래스 추가,
+		 * 포커스 해제되면 제거. 입력값에 따라 리셋 버튼 제어.
+		 */
+		bindFocusState: function () {
+			const inputs = document.querySelectorAll('.form_control');
 
-      inputs.forEach((input) => {
-        const wrapper = input.closest('.form_input');
-        if (!wrapper) return;
+			inputs.forEach((input) => {
+				const wrapper = input.closest('.form_input');
+				if (!wrapper) return;
 
-        const resetButton = wrapper.querySelector('.btn_input_reset');
+				const resetButton = wrapper.querySelector('.btn_input_reset');
 
-        // input에 포커스: focused 클래스 추가 및 리셋 버튼 토글
-        input.addEventListener('focus', () => {
-          wrapper.classList.add('focused');
-          UI.input.toggleResetButton(input);
-        });
+				// input에 포커스: focused 클래스 추가 및 리셋 버튼 토글
+				input.addEventListener('focus', () => {
+					wrapper.classList.add('focused');
+					UI.input.toggleResetButton(input);
+				});
 
-        // input에서 포커스 빠짐: wrapper 전체의 포커스 상태 확인
-        input.addEventListener('blur', () => {
-          UI.input.handleFocusOut(wrapper);
-        });
+				// input에서 포커스 빠짐: wrapper 전체의 포커스 상태 확인
+				input.addEventListener('blur', () => {
+					UI.input.handleFocusOut(wrapper);
+				});
 
-        // btn에서 포커스 빠짐: wrapper 전체의 포커스 상태 확인
+				// btn에서 포커스 빠짐: wrapper 전체의 포커스 상태 확인
 				wrapper.querySelector('.btn')?.addEventListener('blur', () => {
-          UI.input.handleFocusOut(wrapper);
-        });
+					UI.input.handleFocusOut(wrapper);
+				});
 
-        // 입력 중: 리셋 버튼 표시 상태 업데이트
-        input.addEventListener('input', () => {
-          UI.input.toggleResetButton(input);
-        });
+				// 입력 중: 리셋 버튼 표시 상태 업데이트
+				input.addEventListener('input', () => {
+					UI.input.toggleResetButton(input);
+				});
 
-        // 리셋 버튼 관련 이벤트
-        if (resetButton) {
-          // 버튼 포커스: focused 유지
-          resetButton.addEventListener('focus', () => {
-            wrapper.classList.add('focused');
-          });
+				// 리셋 버튼 관련 이벤트
+				if (resetButton) {
+					// 버튼 포커스: focused 유지
+					resetButton.addEventListener('focus', () => {
+						wrapper.classList.add('focused');
+					});
 
-          // 버튼 blur: wrapper 외부로 나가면 focused 제거
-          resetButton.addEventListener('blur', () => {
-            UI.input.handleFocusOut(wrapper);
-          });
-        }
-      });
-    },
-  },
+					// 버튼 blur: wrapper 외부로 나가면 focused 제거
+					resetButton.addEventListener('blur', () => {
+						UI.input.handleFocusOut(wrapper);
+					});
+				}
+			});
+		},
+	},
 
-  modal: {
-    /**
-     * 기본 z-index 값을 가져온다.
-     * @param {HTMLElement} modal - 대상 모달 엘리먼트
-     * @returns {number} - z-index 값 (숫자)
-    */
-    getBaseZIndex(modal) {
-      const z = window.getComputedStyle(modal).zIndex;
-      return isNaN(parseInt(z)) ? 0 : parseInt(z);
-    },
+	modal: {
+		/**
+		 * 기본 z-index 값을 가져온다.
+		 * @param {HTMLElement} modal - 대상 모달 엘리먼트
+		 * @returns {number} - z-index 값 (숫자)
+		*/
+		getBaseZIndex(modal) {
+			const z = window.getComputedStyle(modal).zIndex;
+			return isNaN(parseInt(z)) ? 0 : parseInt(z);
+		},
 
 		/**
 		 * 모달 열기
 		 * @param {string} target - 열 대상 모달 선택자
 		 * @param {HTMLElement} btn - 트리거 버튼 (포커스 복원용)
-    */
-		open: function(target, btn) {
+	*/
+		open: function (target, btn) {
 			const modal = document.querySelector(target);
 			const openedModal = document.querySelectorAll('.modal.active');
 
@@ -874,7 +876,7 @@ const UI = {
 			modal.setAttribute('role', modal.classList.contains('alert') ? 'alertdialog' : 'dialog');
 
 			if (openedModal.length > 0) {
-        const baseZ = this.getBaseZIndex(modal);
+				const baseZ = this.getBaseZIndex(modal);
 				modal.style.zIndex = baseZ + openedModal.length;
 			}
 
@@ -899,8 +901,8 @@ const UI = {
 		/**
 		 * 모달 닫기
 		 * @param {string} target - 닫을 모달 선택자
-    */
-		close: function(target) {
+	*/
+		close: function (target) {
 			const modal = document.querySelector(target);
 			const openedBtn = document.querySelector(`[data-modal="${target}"]`);
 			const openedModal = document.querySelectorAll('.modal.active');
@@ -920,15 +922,15 @@ const UI = {
 		},
 	},
 
-  toast: {
-    show: () => {},
-    hide: () => {},
-  },
+	toast: {
+		show: () => { },
+		hide: () => { },
+	},
 
 	tooltip: {
 		// 툴팁과 버튼 사이 간격 (px)
 		TOOLTIP_GAP: 4,
-		
+
 		/**
 		 * 툴팁 기능 초기화
 		 *
@@ -1093,7 +1095,7 @@ const UI = {
 		}
 	},
 
-	tab : {
+	tab: {
 		// 스크롤 위치 인식 허용 오차 (px)
 		SCROLL_THRESHOLD: 10,
 		// 스크롤 이벤트 throttle 지연시간 (ms)
@@ -1105,7 +1107,7 @@ const UI = {
 		 * @param {number} wait 대기 시간 (밀리초)
 		 * @returns {Function} throttle된 함수
 		 */
-		throttle: function(fn, wait) {
+		throttle: function (fn, wait) {
 			let lastTime = 0;
 			return function (...args) {
 				const now = Date.now();
@@ -1119,7 +1121,7 @@ const UI = {
 		/**
 		 * 페이지 내 모든 탭 컨테이너 초기화
 		 */
-		initAll: function() {
+		initAll: function () {
 			const containers = document.querySelectorAll('.tab');
 			containers.forEach(container => this.init(container));
 		},
@@ -1128,7 +1130,7 @@ const UI = {
 		 * 개별 탭 컨테이너 초기화
 		 * @param {HTMLElement} container 탭 컨테이너 요소
 		 */
-		init: function(container) {
+		init: function (container) {
 			if (!container) return;
 
 			const isScrollTab = container.hasAttribute('data-tab-scroll'); // 스크롤 연동 탭 여부
@@ -1156,9 +1158,9 @@ const UI = {
 			// 클릭 이벤트 위임 설정
 			this.setupClickHandler(container, tabsBtns, tabPanes, tabIndicator, isScrollTab, swiperInstance);
 
-      // HTML data 속성에서 초기 활성 탭 인덱스 읽기 (기본값 0)
-      const activeIndex = parseInt(container.getAttribute('data-tab-active')) || 0;
-      this.activateTab(tabsBtns, tabPanes, activeIndex, tabIndicator, isScrollTab);
+			// HTML data 속성에서 초기 활성 탭 인덱스 읽기 (기본값 0)
+			const activeIndex = parseInt(container.getAttribute('data-tab-active')) || 0;
+			this.activateTab(tabsBtns, tabPanes, activeIndex, tabIndicator, isScrollTab);
 		},
 
 		/**
@@ -1168,7 +1170,7 @@ const UI = {
 		 * @param {HTMLElement} tabContainer 탭 버튼 그룹 요소 (.tab_container)
 		 * @returns {Swiper|null} Swiper 인스턴스 또는 null
 		 */
-		initSwiper: function(container, tabContainer) {
+		initSwiper: function (container, tabContainer) {
 			// swiper 활성화 조건 확인: data-tab-swiper 속성이 없으면 처리하지 않음
 			if (!container.hasAttribute('data-tab-swiper')) return null;
 
@@ -1210,7 +1212,7 @@ const UI = {
 		 * @param {HTMLElement|null} tabIndicator 하단 활성 표시 요소
 		 * @param {boolean} isScrollTab 스크롤 연동 탭인지 여부
 		 */
-		activateTab: function(tabsBtns, panes, idx, tabIndicator, isScrollTab = false) {
+		activateTab: function (tabsBtns, panes, idx, tabIndicator, isScrollTab = false) {
 			tabsBtns.forEach((tabBtn, i) => {
 				const isActive = i === idx;
 				tabBtn.classList.toggle('active', isActive);
@@ -1243,7 +1245,7 @@ const UI = {
 		 * @param {Swiper|null} swiperInstance swiper 인스턴스
 		 * @param {number} idx 이동할 슬라이드 인덱스
 		 */
-		slideToSwiper: function(swiperInstance, idx, tabsBtns) {
+		slideToSwiper: function (swiperInstance, idx, tabsBtns) {
 			if (swiperInstance) {
 				swiperInstance.slideTo(idx);
 			}
@@ -1254,7 +1256,7 @@ const UI = {
 		 * @param {NodeListOf<HTMLElement>} tabsBtns 탭 버튼 리스트
 		 * @param {HTMLElement} container 탭 컨테이너 요소
 		 */
-		setupKeyboardNavigation: function(tabsBtns, container) {
+		setupKeyboardNavigation: function (tabsBtns, container) {
 			container.addEventListener('keydown', (e) => {
 				const target = e.target;
 				// 탭 버튼에서만 동작
@@ -1290,7 +1292,7 @@ const UI = {
 		 * @param {boolean} isScrollTab 스크롤 연동 탭 여부
 		 * @param {Swiper|null} swiperInstance swiper 인스턴스
 		 */
-		setupClickHandler: function(container, tabsBtns, tabPanes, tabIndicator, isScrollTab, swiperInstance) {
+		setupClickHandler: function (container, tabsBtns, tabPanes, tabIndicator, isScrollTab, swiperInstance) {
 			const tabsGroup = tabsBtns[0].closest('.tab_container');
 			const tabsHeight = tabsGroup ? tabsGroup.offsetHeight : 0;
 
@@ -1323,7 +1325,7 @@ const UI = {
 					// 스크롤 이동 전 활성화
 					// this.activateTab(tabsBtns, tabPanes, idx, tabIndicator, true);
 					// this.slideToSwiper(swiperInstance, idx);
-					
+
 					UI.util.scrollToWithCallback(targetY, 500, () => {
 						// 스크롤 이동 후 활성화
 						this.activateTab(tabsBtns, tabPanes, idx, tabIndicator, true);
@@ -1363,7 +1365,7 @@ const UI = {
 		 * @param {Object} scrollState 스크롤 상태 객체
 		 * @param {Swiper|null} swiperInstance swiper 인스턴스 (추가)
 		 */
-		handleScrollNavigation: function(tabsBtns, panes, tabIndicator, scrollState, swiperInstance) {
+		handleScrollNavigation: function (tabsBtns, panes, tabIndicator, scrollState, swiperInstance) {
 			const { isScrollingByClick, scrollTargetIdx } = scrollState;
 			const tabsEl = tabsBtns[0].closest('.tab').querySelector('.tab_container');
 			const tabsHeight = tabsEl ? tabsEl.offsetHeight : 0;
@@ -1414,7 +1416,7 @@ const UI = {
 		},
 	},
 
-	accordion : {
+	accordion: {
 		/**
 		 * 초기화: 모든 아코디언 버튼에 이벤트 바인딩
 		 */
@@ -1469,7 +1471,7 @@ const UI = {
 			// 클릭한 아코디언 위치로 스크롤 이동
 			setTimeout(() => {
 				const accordionWrapper = self.closest('.accordion');
-  
+
 				// 스크롤 옵션 판단
 				const hasScroll = !accordionWrapper.hasAttribute('data-accordion-no-scroll');
 
@@ -1557,6 +1559,128 @@ const UI = {
 				element.style.height = '';
 				element.style.transition = '';
 			}, duration);
+		},
+	},
+
+	scroll: {
+		scrollDown: {
+
+			/**
+			 * scrollDown 초기화 함수
+			 * - data-scrolldown 요소가 존재할 경우 스크롤 이벤트 등록
+			 * - 초기 페이지 로드 시 1회 handle() 실행
+			 */
+			init: function() {
+				const hasTarget = document.querySelector('[data-scrolldown]');
+				if (!hasTarget) return; // 대상 요소가 없으면 실행 안 함
+
+				window.addEventListener('scroll', UI.scroll.scrollDown.handle);
+				UI.scroll.scrollDown.handle(); // 초기 실행
+			},
+
+			/**
+			 * 스크롤 이벤트 시 실행되는 핵심 로직
+			 * 
+			 * [동작 원리]
+			 * 1️⃣ 각 data-scrolldown 요소의 뷰포트 위치(`getBoundingClientRect().top`)를 계산  
+			 * 2️⃣ data-scrolldown 속성 값에 따라 트리거 지점(startLine)을 계산  
+			 * 3️⃣ 요소 하단이 startLine 위로 올라오면 active 클래스 추가  
+			 * 4️⃣ 그렇지 않으면 active 제거
+			 */
+			handle: function() {
+				// 모든 data-scrolldown 요소 탐색
+				const elements = document.querySelectorAll('[data-scrolldown]');
+				const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+				elements.forEach(item => {
+					// 요소의 위치 및 높이 정보
+					const rect = item.getBoundingClientRect();
+					const elementHeight = item.clientHeight;
+
+					// data-scrolldown 속성값 (ex: "0.3" 또는 "150" 또는 "")
+					const scrollDownAttr = item.dataset.scrolldown;
+
+					// 트리거 계산용 변수
+					let startPos = 0.2; // 기본값 (화면 하단 20%)
+					let startLine = null;
+
+					/**
+					 * [startLine 계산 로직]
+					 * - 속성이 없거나 비어있으면 기본값(0.2) 사용
+					 * - 소수점 포함 시: 비율 계산 (0.3 → 70% 지점)
+					 * - 정수 시: 픽셀 단위 계산 (200 → 하단에서 200px)
+					 */
+					if (!scrollDownAttr || scrollDownAttr.length === 0) {
+						startLine = viewportHeight * (1 - startPos);
+					} else {
+						startPos = Number(scrollDownAttr);
+						startLine = scrollDownAttr.indexOf('.') > -1
+							? viewportHeight * (1 - startPos)
+							: viewportHeight - startPos;
+					}
+
+					/**
+					 * [활성화 조건]
+					 * 요소의 하단이 startLine보다 위로 올라왔을 때 → is_active 추가
+					 * (즉, 요소가 화면의 지정 위치까지 스크롤되어 들어왔을 때)
+					 */
+					if (rect.top + elementHeight < startLine) {
+						item.classList.add('is_active');
+					} else {
+						item.classList.remove('is_active');
+					}
+				});
+			},
+		},
+
+		/** ===============================
+		 * 📍 scrollMove : 버튼 클릭 시 특정 섹션으로 부드럽게 이동
+		 *
+		 * [사용 예시]
+		 * <button data-scroll-move="section1">Section 1으로 이동</button>
+		 * ...
+		 * <div id="section1">Section 1</div>
+		 *
+		 * [특징]
+		 * - fixed header 높이를 자동으로 감안해 스크롤 위치 보정
+		 * - 존재하지 않는 id를 지정하면 무시
+		 * - 부드러운 스크롤(smooth behavior)
+		 * =============================== */
+		scrollMove: {
+			init: function() {
+				// 모든 data-scroll-move 버튼 탐색
+				const buttons = document.querySelectorAll('[data-scroll-move]');
+				if (!buttons.length) return;
+
+				buttons.forEach(btn => {
+					btn.addEventListener('click', UI.scroll.scrollMove.handle);
+				});
+			},
+
+			handle: function(e) {
+				e.preventDefault();
+
+				// 버튼의 data-scroll-move 값 가져오기
+				const targetId = this.dataset.scrollMove;
+				if (!targetId) return;
+
+				// 이동 대상 요소 찾기
+				const targetEl = document.getElementById(targetId);
+				if (!targetEl) return;
+
+				// 헤더 높이 계산 (fixed header 고려)
+				const header = document.querySelector('header');
+				const headerHeight = header ? header.offsetHeight : 0;
+
+				// 이동할 위치 계산
+				const targetPos = targetEl.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+
+				// 부드럽게 스크롤 이동
+				window.scrollTo({
+					top: targetPos,
+					behavior: 'smooth'
+				});
+			},
 		},
 	},
 };
